@@ -9,19 +9,23 @@ public class Board {
     private int maxCol;
     private int minRow = 0;
     private int minCol = 0;
+    private int nActor;
     private Random rand = new Random();
     public List<Actor> actors = new ArrayList<>();
     private List<Set<Actor>> sets = new ArrayList<>();
+    private Model model;
 
     public double threshold = 0.3;
 
     public Board(int maxRow, int maxCol, double beta, double gamma, int nPop, int nPopSick) {
-        init(maxRow, maxCol, beta, gamma, nPop);
+        init(maxRow, maxCol, beta, gamma, nPop, nPopSick);
     }
 
-    public void init(int maxRow, int maxCol, double beta, double gamma, int nActor){
+    public void init(int maxRow, int maxCol, double beta, double gamma, int nActor, int nPopSick){
+        this.model = new SIRModel();
         this.maxRow = maxRow;
         this.maxCol = maxCol;
+        this.clearActors();
         for (int i = 0; i < nActor; i++) {
             if (i < (nActor - (int) (0.015 * nActor))) {
                 addActor(gerRandomActor(Actor.State.HEALTHY, maxRow, maxCol, beta, gamma));
@@ -29,6 +33,22 @@ public class Board {
                 addActor(gerRandomActor(Actor.State.SICK, maxRow, maxCol, beta, gamma));
             }
         }
+    }
+
+    public void clearActors(){
+        actors = new ArrayList<>();
+        sets = new ArrayList<>();
+    }
+
+    public void modifyActors(double beta, double gamma){
+        for (Actor a : actors) {
+            a.changeParams(beta,gamma);
+        }
+    }
+
+    public void modifyBoard(int maxRow, int maxCol,int nPop){
+        this.maxRow = maxRow;
+        this.maxCol = maxCol;
     }
 
     public List<Set<Actor>> find() {
@@ -62,6 +82,10 @@ public class Board {
                 }
             }
         }
+    }
+
+    public void modelStep() {
+        model.stepInfection();
     }
 
     public void move() {
@@ -189,5 +213,7 @@ public class Board {
         int pop[] = {numberOfHealthy(),numberOfSick(),numberOfCured()};
         return pop;
     }
+
+
 
 }

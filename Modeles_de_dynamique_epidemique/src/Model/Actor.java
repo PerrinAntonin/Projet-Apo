@@ -22,6 +22,11 @@ public class Actor {
         this.gamma = gamma;
     }
 
+    public void changeParams(double beta,double gamma){
+        this.beta = beta;
+        this.gamma = gamma;
+    }
+
     public boolean doInfect() {
         return (Math.random() < beta);
     }

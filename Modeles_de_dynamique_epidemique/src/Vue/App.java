@@ -4,10 +4,16 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import Controller.BoardController;
 import Model.Board;
@@ -42,30 +48,20 @@ public class App extends JFrame{
     private JLabel betaL;
     private JLabel SIRModelL;
 
-
     public static void main(String[] args)   {
         App view = new App();
     }
 
-
     public App() {
 
-        int xMax= 20;
-        int yMax= 20;
-        double beta = 60/100.0;
-        double gamma = 80/100.0;
-        int nPop = 1000;
-        int nPopSick = 10;
-
-        Board board = new Board(xMax, yMax, beta, gamma, nPop, nPopSick);
-        boardController = new BoardController(board);
+        boardController = new BoardController();
 
         this.setContentPane(panelMain);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setSize(600, 400);
         this.setTitle("SIR Model");
         this.setVisible(true);
-        setParamsFrame(xMax,yMax,beta,gamma, nPop, nPopSick);
+        setParamsFrame(boardController.getBoardParams()[0],boardController.getBoardParams()[1],boardController.getModelParams()[0],boardController.getModelParams()[1], boardController.getBoardParams()[2], boardController.getBoardParams()[3]);
 
         JFreeChart chart = ChartFactory.createXYLineChart("SIR Model", null, null, null, PlotOrientation.VERTICAL, true, true, true);
         ChartPanel test = new ChartPanel(chart);
@@ -73,13 +69,6 @@ public class App extends JFrame{
         graphPanel.add(test, BorderLayout.CENTER);
         graphPanel.revalidate();
 
-//        double gamma = gammaS.getValue()/100.0;
-//        double beta = betaS.getValue()/100.0;
-//        int xMax = (Integer) xMaxSizeS.getValue();
-//        int yMax = (Integer)yMaxSizeS.getValue();
-//        int nPop = (Integer)nPopS.getValue();
-//        int nPopSick = (Integer)nPopSickS.getValue();
-//        board = new Board(xMax, yMax, beta, gamma, nPop, nPopSick);
 
         resetModelButton.addActionListener(new ActionListener() {
             @Override
@@ -103,6 +92,41 @@ public class App extends JFrame{
 
             }
         });
+
+        resetModelButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                double gamma = gammaS.getValue()/100.0;
+                double beta = betaS.getValue()/100.0;
+                int xMax = (Integer) xMaxSizeS.getValue();
+                int yMax = (Integer)yMaxSizeS.getValue();
+                int nPop = (Integer)nPopS.getValue();
+                int nPopSick = (Integer)nPopSickS.getValue();
+                boardController.reset(xMax,yMax,nPop,nPopSick,beta,gamma);
+
+            }
+        });
+
+        ChangeListener listener = new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                ConsoleTest.setText("Value changed");
+                double gamma = gammaS.getValue()/100.0;
+                double beta = betaS.getValue()/100.0;
+                int xMax = (Integer) xMaxSizeS.getValue();
+                int yMax = (Integer)yMaxSizeS.getValue();
+                int nPop = (Integer)nPopS.getValue();
+                int nPopSick = (Integer)nPopSickS.getValue();
+                boardController.changeParams(xMax,yMax,nPop,nPopSick,beta,gamma);
+            }
+        };
+
+        nPopS.addChangeListener(listener);
+        nPopSickS.addChangeListener(listener);
+        yMaxSizeS.addChangeListener(listener);
+        xMaxSizeS.addChangeListener(listener);
+        gammaS.addChangeListener(listener);
+        betaS.addChangeListener(listener);
     }
 
     private void updateChart() {
