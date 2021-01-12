@@ -4,32 +4,32 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.net.http.WebSocket;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import Controller.BoardController;
-import Model.Board;
+import Controller.SimulationController;
+import Model.SEIRBModel;
+import Model.SEIRModel;
+import Model.SIRModel;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 
 public class App extends JFrame{
-    private BoardController boardController;
+    private SimulationController simulationController;
+
     private JPanel panelMain;
     private JPanel graphPanel;
     private JPanel SettingsPanel;
-    private JPanel NewSettingPanel;
+    private JPanel newSettingValueP;
+    private JPanel newSettingLabelP;
 
     private JLabel ConsoleTest;
     private JButton resetModelButton;
@@ -41,30 +41,28 @@ public class App extends JFrame{
     private JSpinner nPopSickS;
     private JSpinner yMaxSizeS;
     private JSpinner xMaxSizeS;
-    private JSlider gammaS;
-    private JSlider betaS;
+    private Map<String, JSlider> params = new HashMap<>();
 
-    private JLabel gammaL;
-    private JLabel betaL;
     private JLabel SIRModelL;
+
 
     public static void main(String[] args)   {
         App view = new App();
     }
 
     public App() {
-
-        boardController = new BoardController();
+        this.simulationController = new SimulationController();
 
         this.setContentPane(panelMain);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setSize(600, 400);
         this.setTitle("SIR Model");
         this.setVisible(true);
-        setParamsFrame(boardController.getBoardParams()[0],boardController.getBoardParams()[1],boardController.getModelParams()[0],boardController.getModelParams()[1], boardController.getBoardParams()[2], boardController.getBoardParams()[3]);
+        setParamsFrame(simulationController.getModelParams(), simulationController.getBoardParams());
 
         JFreeChart chart = ChartFactory.createXYLineChart("SIR Model", null, null, null, PlotOrientation.VERTICAL, true, true, true);
         ChartPanel test = new ChartPanel(chart);
+
         graphPanel.removeAll();
         graphPanel.add(test, BorderLayout.CENTER);
         graphPanel.revalidate();
@@ -74,50 +72,43 @@ public class App extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 JFreeChart chart = ChartFactory.createXYLineChart(null, null, null, null, PlotOrientation.VERTICAL, true, true, true);
-                ChartPanel test = new ChartPanel(chart);
+                ChartPanel newchartpanel = new ChartPanel(chart);
                 graphPanel.removeAll();
-                graphPanel.add(test, BorderLayout.CENTER);
+                graphPanel.add(newchartpanel, BorderLayout.CENTER);
                 graphPanel.revalidate();
+
+                int xMax = (Integer) xMaxSizeS.getValue();
+                int yMax = (Integer)yMaxSizeS.getValue();
+                int nPop = (Integer)nPopS.getValue();
+                int nPopSick = (Integer)nPopSickS.getValue();
+                simulationController.reset(xMax,yMax,nPop,nPopSick);
             }
         });
 
         increm.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                boardController.iterate(10);
+                simulationController.iterate(10);
                 updateChart();
-//                JLabel lab1 = new JLabel("User Name", JLabel.RIGHT);
-//                NewSettingPanel.setLayout(new FlowLayout());
-//                NewSettingPanel.add(lab1 = new JLabel("add JLabel"));
-
-            }
-        });
-
-        resetModelButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                double gamma = gammaS.getValue()/100.0;
-                double beta = betaS.getValue()/100.0;
-                int xMax = (Integer) xMaxSizeS.getValue();
-                int yMax = (Integer)yMaxSizeS.getValue();
-                int nPop = (Integer)nPopS.getValue();
-                int nPopSick = (Integer)nPopSickS.getValue();
-                boardController.reset(xMax,yMax,nPop,nPopSick,beta,gamma);
-
             }
         });
 
         ChangeListener listener = new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                ConsoleTest.setText("Value changed");
-                double gamma = gammaS.getValue()/100.0;
-                double beta = betaS.getValue()/100.0;
+
                 int xMax = (Integer) xMaxSizeS.getValue();
                 int yMax = (Integer)yMaxSizeS.getValue();
                 int nPop = (Integer)nPopS.getValue();
                 int nPopSick = (Integer)nPopSickS.getValue();
-                boardController.changeParams(xMax,yMax,nPop,nPopSick,beta,gamma);
+                Map<String, Double> modelParams = new HashMap<String, Double>();
+
+                for (String labelName:params.keySet()) {
+                    modelParams.put(labelName,params.get(labelName).getValue()/100.);
+                }
+
+                ConsoleTest.setText("Value changed" + params.get("gamma").getValue() );
+                simulationController.changeParams(xMax, yMax, nPop, nPopSick, modelParams);
             }
         };
 
@@ -125,12 +116,75 @@ public class App extends JFrame{
         nPopSickS.addChangeListener(listener);
         yMaxSizeS.addChangeListener(listener);
         xMaxSizeS.addChangeListener(listener);
-        gammaS.addChangeListener(listener);
-        betaS.addChangeListener(listener);
+
+
+        SIRModelCB.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                String name = SIRModelCB.getSelectedItem().toString();
+                switch (name) {
+                    case "SIR":
+                        newSettingLabelP.removeAll();
+                        newSettingValueP.removeAll();
+                        params.clear();
+
+                        SIRModel sirmodel = new SIRModel();
+
+                        for (String labelName:sirmodel.getParams().keySet()) {
+                            addSetting(labelName,listener);
+                        }
+
+                        simulationController.changeModel(sirmodel);
+
+                        break;
+
+                    case "SEIR":
+                        newSettingLabelP.removeAll();
+                        newSettingValueP.removeAll();
+                        params.clear();
+                        SEIRModel seirmodel = new SEIRModel();
+                        seirmodel.getParams();
+                        for (String labelName:seirmodel.getParams().keySet()) {
+                            addSetting(labelName,listener);
+                        }
+                        simulationController.changeModel(seirmodel);
+                        break;
+
+                    case "SIR with birth":
+                        newSettingLabelP.removeAll();
+                        newSettingValueP.removeAll();
+                        params.clear();
+                        SEIRBModel seirbmodel = new SEIRBModel();
+                        seirbmodel.getParams();
+                        for (String labelName:seirbmodel.getParams().keySet()) {
+                            addSetting(labelName,listener);
+                        }
+                        simulationController.changeModel(seirbmodel);
+                        break;
+                    default:
+                        break;
+                }
+                ConsoleTest.setText(name);
+            }
+        });
+        SIRModelCB.setSelectedItem("SIR");
+    }
+
+    public void addSetting(String labelName, ChangeListener listener){
+        JLabel lab = new JLabel(labelName);
+        lab.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        newSettingLabelP.setLayout(new BoxLayout(newSettingLabelP,BoxLayout.Y_AXIS));
+        newSettingLabelP.add(lab,BorderLayout.EAST);
+        JSlider slider = new JSlider();
+        slider.addChangeListener(listener);
+        params.put(labelName,slider);
+        newSettingValueP.setLayout(new BoxLayout(newSettingValueP,BoxLayout.Y_AXIS));
+        newSettingValueP.add(slider);
     }
 
     private void updateChart() {
-        JFreeChart chart = ChartFactory.createXYLineChart("SIR Model", null, null, boardController.getDataset(), PlotOrientation.VERTICAL, true, true, true);
+        JFreeChart chart = ChartFactory.createXYLineChart("SIR Model", null, null, simulationController.getDataset(), PlotOrientation.VERTICAL, true, true, true);
 
         ChartPanel test = new ChartPanel(chart);
         graphPanel.removeAll();
@@ -139,18 +193,19 @@ public class App extends JFrame{
 
     }
 
-    public void setParamsFrame(int xMax,int yMax,double beta,double gamma, int nPop, int nPopSick){
-        nPopSickS.setValue(nPopSick);
-        nPopS.setValue(nPop);
-        gammaS.setValue((int)(gamma*100.0));
-        betaS.setValue((int)(beta*100.0));
-        xMaxSizeS.setValue(xMax);
-        yMaxSizeS.setValue(yMax);
+    public void setParamsFrame(Map<String, Double> modelParams, int[] mapParams){
+        nPopSickS.setValue(mapParams[3]);
+        nPopS.setValue(mapParams[2]);
+        xMaxSizeS.setValue(mapParams[0]);
+        yMaxSizeS.setValue(mapParams[1]);
     }
 
 
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
+        String params[] = { "SIR", "SEIR", "SIR with birth" };
+
+        this.SIRModelCB= new JComboBox(params);
     }
 }

@@ -5,28 +5,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class SIRModel implements Model {
+public class SEIRBModel implements Model{
 
     Map<String, Double> params = new HashMap<String, Double>();
     private Board board;
+    private String[] states = {"Number of susceptible", "Number of exposed", "Number of infected", "Number of recovered"};
 
-    private String[] states = {"Number of susceptible", "Number of infected", "Number of recovered"};
-
-    public SIRModel(double beta, double gamma, Board board){
+    public SEIRBModel(double beta, double gamma, double sigma, double birthRate, Board board){
         this.params.put("beta",beta);
         this.params.put("gamma",gamma);
+        this.params.put("sigma",sigma);
+        this.params.put("birthRate", birthRate);
         this.board = board;
         this.initActors();
     }
-    public SIRModel(){
-        this.params.put("beta",80/100.0);
-        this.params.put("gamma",60/100.0);
-    }
 
-    public SIRModel(double beta, double gamma){
+    public SEIRBModel(double beta, double sigma, double birthRate, double gamma){
         this.params.put("beta",beta);
         this.params.put("gamma",gamma);
+        this.params.put("sigma",sigma);
+        this.params.put("birthRate", birthRate);
     }
+
+    public SEIRBModel(){
+        this.params.put("beta",80/100.0);
+        this.params.put("gamma",60/100.0);
+        this.params.put("sigma",70/100.0);
+        this.params.put("birthRate", 2/100.0);
+    }
+
+    public String[] getStates() {
+        return states;
+    }
+
 
     public void setBoard(Board board){
         this.board = board;
@@ -43,8 +54,8 @@ public class SIRModel implements Model {
     public int[] stepInfection(){
         board.move();
         this.infect();
-        return new int[] { board.numberOfHealthy(), board.numberOfSick(), board.numberOfCured()};
-    }
+        return new int[] { board.numberOfHealthy(), board.numberOfExposed(), board.numberOfSick(), board.numberOfCured()};
+    };
 
     public void infect() {
         List<Set<Actor>> sets = board.find();
@@ -54,11 +65,14 @@ public class SIRModel implements Model {
             for (Actor a : sick) {
                 if (doInfect(a)) {
                     setAll(healthy, Actor.State.SICK);
+                }else{
+                    a.setState(Actor.State.EXPOSED);
                 }
 
                 if (doCure(a)) {
                     a.setState(Actor.State.IMMUNE);
                 }
+
             }
         }
     }
@@ -87,13 +101,11 @@ public class SIRModel implements Model {
         return a.getParams().get("beta");
     }
 
-    public String[] getStates() {
-        return states;
-    }
-
     public void addBoard(Board board){
         this.board = board;
     }
 
     public Map<String, Double> getParams(){return this.params;}
+
+
 }
