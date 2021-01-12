@@ -11,47 +11,33 @@ public class SEIRModel implements Model{
         private Board board;
         private String[] states = {"Number of susceptible", "Number of exposed", "Number of infected", "Number of recovered"};
 
-        public SEIRModel(double beta, double gamma,double sigma, Board board){
-            this.params.put("beta",beta);
-            this.params.put("gamma",gamma);
-            this.params.put("sigma",sigma);
-            this.board = board;
-            this.initActors();
-        }
-
         public SEIRModel(){
             this.params.put("sigma",70/100.0);
             this.params.put("beta",80/100.0);
             this.params.put("gamma",60/100.0);
         }
 
-        public SEIRModel(double beta, double gamma,double sigma){
-            this.params.put("beta", beta);
-            this.params.put("gamma", gamma);
-            this.params.put("sigma", sigma);
-        }
+        public String[] getStates() {  return states; }
 
-        public String[] getStates() {
-            return states;
-        }
+    /**
+     * @param board
+     */
+        public void setBoard(Board board){ this.board = board; }
 
-        public void setBoard(Board board){
-            this.board = board;
-        }
+        public void initActors(){ board.modifyActors(this.params);}
 
-        public void initActors(){
-            board.modifyActors(this.params);
-        }
+        public void setModelParams(Map<String, Double> params ){ this.params=params; }
 
-        public void setModelParams(Map<String, Double> params ){
-            this.params=params;
+        public int[] numberOfPeople(){
+            return new int[] { board.numberOfHealthy(), board.numberOfExposed(), board.numberOfSick(), board.numberOfCured()};
         }
 
         public int[] stepInfection(){
             board.move();
             this.infect();
-            return new int[] { board.numberOfHealthy(), board.numberOfExposed(), board.numberOfSick(), board.numberOfCured()};
+            return numberOfPeople();
         }
+
 
         public void infect() {
             List<Set<Actor>> sets = board.find();
@@ -101,23 +87,28 @@ public class SEIRModel implements Model{
             return Math.random() < gamma;
         }
 
-        public double getActorGamma(Actor a){
-            return a.getParams().get("gamma");
-        }
+    /**
+     * @param a
+     * @return
+     */
+        public double getActorGamma(Actor a){ return a.getParams().get("gamma"); }
 
-        public double getActorBeta(Actor a){
-            return a.getParams().get("beta");
-        }
+    /**
+     * @param a
+     * @return
+     */
+        public double getActorBeta(Actor a){ return a.getParams().get("beta"); }
 
-        public double getActorSigma(Actor a){
-            return a.getParams().get("sigma");
-        }
+    /**
+     * @param a
+     * @return
+     */
+        public double getActorSigma(Actor a){ return a.getParams().get("sigma"); }
 
-        public void addBoard(Board board){
-            this.board = board;
-        }
+    /**
+     * @param board
+     */
+        public void addBoard(Board board){ this.board = board; }
 
         public Map<String, Double> getParams(){return this.params;}
-
-
 }

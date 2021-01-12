@@ -16,20 +16,25 @@ public class Board {
 
     public double threshold = 0.3;
 
-    public Board(int maxRow, int maxCol, int nPop, int nPopSick) {
-        init(maxRow, maxCol, nPop, nPopSick);
-    }
+    public Board(int maxRow, int maxCol, int nPop, int nPopSick) { init(maxRow, maxCol, nPop, nPopSick); }
 
+    /**
+     * @param maxRow
+     * @param maxCol
+     * @param nActor
+     * @param nPopSick
+     */
     public void init(int maxRow, int maxCol, int nActor, int nPopSick){
-
         this.maxRow = maxRow;
         this.maxCol = maxCol;
         this.clearActors();
         for (int i = 0; i < nPopSick; i++) {
             addActor(gerRandomActor(Actor.State.SICK, maxRow, maxCol));
         }
-        for (int i = 0; i < nActor-nPopSick; i++) {
-            addActor(gerRandomActor(Actor.State.HEALTHY, maxRow, maxCol));
+        if(nActor>nPopSick){
+            for (int i = 0; i < nActor-nPopSick; i++) {
+                addActor(gerRandomActor(Actor.State.HEALTHY, maxRow, maxCol));
+            }
         }
     }
 
@@ -42,11 +47,6 @@ public class Board {
         for (Actor a : actors) {
             a.setParams(params);
         }
-    }
-
-    public void modifyBoard(int maxRow, int maxCol,int nPop){
-        this.maxRow = maxRow;
-        this.maxCol = maxCol;
     }
 
     public List<Set<Actor>> find() {
@@ -72,6 +72,9 @@ public class Board {
     }
 
 
+    /**
+     * @param a
+     */
     public void step(Actor a) {
         int dir = rand.nextInt(4);
         if (Math.random() < threshold) {
@@ -110,11 +113,20 @@ public class Board {
         }
     }
 
+    /**
+     * @param state
+     * @param maxX
+     * @param maxY
+     * @return
+     */
     private Actor gerRandomActor(Actor.State state, int maxX, int maxY) {
         Random r = new Random();
         return new Actor(state, r.nextInt(maxX), r.nextInt(maxY));
     }
 
+    /**
+     * @param actor
+     */
     public void addActor(Actor actor) {
         actors.add(actor);
     }
@@ -148,6 +160,10 @@ public class Board {
         return sum;
     }
 
+    /**
+     * @param as
+     * @return
+     */
     public List<Actor> getExposed(Set<Actor> as){
         List<Actor> tmp = new ArrayList<>();
         for (Actor a : as) {
@@ -158,6 +174,10 @@ public class Board {
         return tmp;
     }
 
+    /**
+     * @param as
+     * @return
+     */
     public List<Actor> getHealthy(Set<Actor> as) {
         List<Actor> tmp = new ArrayList<>();
         for (Actor a : as) {
@@ -168,6 +188,10 @@ public class Board {
         return tmp;
     }
 
+    /**
+     * @param as
+     * @return
+     */
     public List<Actor> getSick(Set<Actor> as) {
         List<Actor> tmp = new ArrayList<>();
         for (Actor a : as) {

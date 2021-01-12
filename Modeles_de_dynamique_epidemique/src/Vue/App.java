@@ -43,9 +43,6 @@ public class App extends JFrame{
     private JSpinner xMaxSizeS;
     private Map<String, JSlider> params = new HashMap<>();
 
-    private JLabel SIRModelL;
-
-
     public static void main(String[] args)   {
         App view = new App();
     }
@@ -58,7 +55,7 @@ public class App extends JFrame{
         this.setSize(600, 400);
         this.setTitle("SIR Model");
         this.setVisible(true);
-        setParamsFrame(simulationController.getModelParams(), simulationController.getBoardParams());
+        setParamsFrame(simulationController.getBoardParams());
 
         JFreeChart chart = ChartFactory.createXYLineChart("SIR Model", null, null, null, PlotOrientation.VERTICAL, true, true, true);
         ChartPanel test = new ChartPanel(chart);
@@ -68,9 +65,83 @@ public class App extends JFrame{
         graphPanel.revalidate();
 
 
+
+        ChangeListener listenerModelParams = new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+
+                Map<String, Double> modelParams = new HashMap<String, Double>();
+
+                for (String labelName:params.keySet()) {
+                    modelParams.put(labelName,params.get(labelName).getValue()/100.);
+                }
+
+                ConsoleTest.setText("Value changed" + params.get("gamma").getValue() );
+                simulationController.changeModelParams(modelParams);
+            }
+        };
+
+        SIRModelCB.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                String name = SIRModelCB.getSelectedItem().toString();
+                switch (name) {
+                    case "SIR":
+                        newSettingLabelP.removeAll();
+                        newSettingValueP.removeAll();
+                        params.clear();
+
+                        SIRModel sirmodel = new SIRModel();
+                        Map<String, Double> paramsMapSir= sirmodel.getParams();
+                        for (String labelName:paramsMapSir.keySet()) {
+                            addSetting(labelName, listenerModelParams, paramsMapSir.get(labelName));
+                        }
+
+                        simulationController.changeModel(sirmodel);
+                        graphPanel.revalidate();
+                        break;
+
+                    case "SEIR":
+                        newSettingLabelP.removeAll();
+                        newSettingValueP.removeAll();
+                        params.clear();
+
+                        SEIRModel seirmodel = new SEIRModel();
+                        Map<String, Double> paramsMapSeir = seirmodel.getParams();
+                        for (String labelName:paramsMapSeir.keySet()) {
+                            addSetting(labelName, listenerModelParams, paramsMapSeir.get(labelName));
+                        }
+                        simulationController.changeModel(seirmodel);
+                        graphPanel.revalidate();
+                        break;
+
+                    case "SIR with birth":
+                        newSettingLabelP.removeAll();
+                        newSettingValueP.removeAll();
+                        params.clear();
+
+                        SEIRBModel seirbmodel = new SEIRBModel();
+                        Map<String, Double> paramsMapSeirb = seirbmodel.getParams();
+                        for (String labelName:paramsMapSeirb.keySet()) {
+                            addSetting(labelName,listenerModelParams, paramsMapSeirb.get(labelName));
+                        }
+                        simulationController.changeModel(seirbmodel);
+                        graphPanel.revalidate();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+
+        SIRModelCB.setSelectedItem("SIR");
+
+
         resetModelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                // Regenerate Chart
                 JFreeChart chart = ChartFactory.createXYLineChart(null, null, null, null, PlotOrientation.VERTICAL, true, true, true);
                 ChartPanel newchartpanel = new ChartPanel(chart);
                 graphPanel.removeAll();
@@ -88,95 +159,19 @@ public class App extends JFrame{
         increm.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                simulationController.iterate(10);
+                simulationController.iterate(5);
                 updateChart();
             }
         });
-
-        ChangeListener listener = new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-
-                int xMax = (Integer) xMaxSizeS.getValue();
-                int yMax = (Integer)yMaxSizeS.getValue();
-                int nPop = (Integer)nPopS.getValue();
-                int nPopSick = (Integer)nPopSickS.getValue();
-                Map<String, Double> modelParams = new HashMap<String, Double>();
-
-                for (String labelName:params.keySet()) {
-                    modelParams.put(labelName,params.get(labelName).getValue()/100.);
-                }
-
-                ConsoleTest.setText("Value changed" + params.get("gamma").getValue() );
-                simulationController.changeParams(xMax, yMax, nPop, nPopSick, modelParams);
-            }
-        };
-
-        nPopS.addChangeListener(listener);
-        nPopSickS.addChangeListener(listener);
-        yMaxSizeS.addChangeListener(listener);
-        xMaxSizeS.addChangeListener(listener);
-
-
-        SIRModelCB.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                String name = SIRModelCB.getSelectedItem().toString();
-                switch (name) {
-                    case "SIR":
-                        newSettingLabelP.removeAll();
-                        newSettingValueP.removeAll();
-                        params.clear();
-
-                        SIRModel sirmodel = new SIRModel();
-
-                        for (String labelName:sirmodel.getParams().keySet()) {
-                            addSetting(labelName,listener);
-                        }
-
-                        simulationController.changeModel(sirmodel);
-
-                        break;
-
-                    case "SEIR":
-                        newSettingLabelP.removeAll();
-                        newSettingValueP.removeAll();
-                        params.clear();
-                        SEIRModel seirmodel = new SEIRModel();
-                        seirmodel.getParams();
-                        for (String labelName:seirmodel.getParams().keySet()) {
-                            addSetting(labelName,listener);
-                        }
-                        simulationController.changeModel(seirmodel);
-                        break;
-
-                    case "SIR with birth":
-                        newSettingLabelP.removeAll();
-                        newSettingValueP.removeAll();
-                        params.clear();
-                        SEIRBModel seirbmodel = new SEIRBModel();
-                        seirbmodel.getParams();
-                        for (String labelName:seirbmodel.getParams().keySet()) {
-                            addSetting(labelName,listener);
-                        }
-                        simulationController.changeModel(seirbmodel);
-                        break;
-                    default:
-                        break;
-                }
-                ConsoleTest.setText(name);
-            }
-        });
-        SIRModelCB.setSelectedItem("SIR");
     }
 
-    public void addSetting(String labelName, ChangeListener listener){
+    public void addSetting(String labelName, ChangeListener listener, double value){
         JLabel lab = new JLabel(labelName);
         lab.setAlignmentX(Component.RIGHT_ALIGNMENT);
         newSettingLabelP.setLayout(new BoxLayout(newSettingLabelP,BoxLayout.Y_AXIS));
         newSettingLabelP.add(lab,BorderLayout.EAST);
         JSlider slider = new JSlider();
+        slider.setValue((int)(value*100));
         slider.addChangeListener(listener);
         params.put(labelName,slider);
         newSettingValueP.setLayout(new BoxLayout(newSettingValueP,BoxLayout.Y_AXIS));
@@ -186,21 +181,17 @@ public class App extends JFrame{
     private void updateChart() {
         JFreeChart chart = ChartFactory.createXYLineChart("SIR Model", null, null, simulationController.getDataset(), PlotOrientation.VERTICAL, true, true, true);
 
-        ChartPanel test = new ChartPanel(chart);
         graphPanel.removeAll();
-        graphPanel.add(test, BorderLayout.CENTER);
+        graphPanel.add(new ChartPanel(chart), BorderLayout.CENTER);
         graphPanel.revalidate();
-
     }
 
-    public void setParamsFrame(Map<String, Double> modelParams, int[] mapParams){
+    public void setParamsFrame(int[] mapParams){
         nPopSickS.setValue(mapParams[3]);
         nPopS.setValue(mapParams[2]);
         xMaxSizeS.setValue(mapParams[0]);
         yMaxSizeS.setValue(mapParams[1]);
     }
-
-
 
     private void createUIComponents() {
         // TODO: place custom component creation code here

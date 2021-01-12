@@ -10,4 +10,5 @@ public interface Model {
     void setModelParams(Map<String, Double> params);
     void setBoard(Board board);
     String[] getStates();
+    int[] numberOfPeople();
 }

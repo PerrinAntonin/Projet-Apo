@@ -21,13 +21,13 @@ public class Actor {
         this.col = col;
     }
 
+    /**
+     * @param params
+     */
     public void setParams(Map<String, Double> params){
         this.params = params;
     }
 
-    public void modParams(String key,double value){
-        this.params.put(key,value);
-    }
 
     public Map<String, Double> getParams(){return params; }
 
@@ -35,6 +35,9 @@ public class Actor {
         return state;
     }
 
+    /**
+     * @param state
+     */
     public void setState(State state) {
         this.state = state;
     }
@@ -43,6 +46,9 @@ public class Actor {
         return row;
     }
 
+    /**
+     * @param row
+     */
     public void setRow(int row) {
         this.row = row;
     }
@@ -51,6 +57,9 @@ public class Actor {
         return col;
     }
 
+    /**
+     * @param col
+     */
     public void setCol(int col) {
         this.col = col;
     }
