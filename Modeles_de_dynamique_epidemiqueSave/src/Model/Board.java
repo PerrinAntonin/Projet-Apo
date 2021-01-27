@@ -9,33 +9,28 @@ public class Board {
     private int maxCol;
     private int minRow = 0;
     private int minCol = 0;
-
-
-
+    private int nActor;
     private Random rand = new Random();
     public List<Actor> actors = new ArrayList<>();
     private List<Set<Actor>> sets = new ArrayList<>();
+    private Model model;
 
     public double threshold = 0.3;
 
-    public Board(int maxRow, int maxCol, int nPop, int nPopSick) { init(maxRow, maxCol, nPop, nPopSick); }
+    public Board(int maxRow, int maxCol, double beta, double gamma, int nPop, int nPopSick) {
+        init(maxRow, maxCol, beta, gamma, nPop, nPopSick);
+    }
 
-    /**
-     * @param maxRow
-     * @param maxCol
-     * @param nActor
-     * @param nPopSick
-     */
-    public void init(int maxRow, int maxCol, int nActor, int nPopSick){
+    public void init(int maxRow, int maxCol, double beta, double gamma, int nActor, int nPopSick){
+        this.model = new SIRModel();
         this.maxRow = maxRow;
         this.maxCol = maxCol;
         this.clearActors();
-        for (int i = 0; i < nPopSick; i++) {
-            addActor(gerRandomActor(Actor.State.SICK, maxRow, maxCol));
-        }
-        if(nActor>nPopSick){
-            for (int i = 0; i < nActor-nPopSick; i++) {
-                addActor(gerRandomActor(Actor.State.HEALTHY, maxRow, maxCol));
+        for (int i = 0; i < nActor; i++) {
+            if (i < (nActor - (int) (0.015 * nActor))) {
+                addActor(gerRandomActor(Actor.State.HEALTHY, maxRow, maxCol, beta, gamma));
+            } else {
+                addActor(gerRandomActor(Actor.State.SICK, maxRow, maxCol, beta, gamma));
             }
         }
     }
@@ -45,10 +40,15 @@ public class Board {
         sets = new ArrayList<>();
     }
 
-    public void modifyActors(Map<String, Double> params){
+    public void modifyActors(double beta, double gamma){
         for (Actor a : actors) {
-            a.setParams(params);
+            a.changeParams(beta,gamma);
         }
+    }
+
+    public void modifyBoard(int maxRow, int maxCol,int nPop){
+        this.maxRow = maxRow;
+        this.maxCol = maxCol;
     }
 
     public List<Set<Actor>> find() {
@@ -66,6 +66,27 @@ public class Board {
         return sets;
     }
 
+    public void infect() {
+//        sets.clear();
+        sets = find();
+        for (Set<Actor> as : sets) {
+            List<Actor> healthy = getHealthy(as);
+            List<Actor> sick = getSick(as);
+            for (Actor a : sick) {
+                if (a.doInfect()) {
+                    setAll(healthy, Actor.State.SICK);
+                }
+
+                if (a.doCure()) {
+                    a.setState(Actor.State.IMMUNE);
+                }
+            }
+        }
+    }
+
+    public void modelStep() {
+        model.stepInfection();
+    }
 
     public void move() {
         for (Actor a : actors) {
@@ -73,10 +94,32 @@ public class Board {
         }
     }
 
+    public void setAll(List<Actor> as, Actor.State state) {
+        for (Actor a : as) {
+            a.setState(state);
+        }
+    }
 
-    /**
-     * @param a
-     */
+    public List<Actor> getHealthy(Set<Actor> as) {
+        List<Actor> tmp = new ArrayList<>();
+        for (Actor a : as) {
+            if (a.getState() == Actor.State.HEALTHY) {
+                tmp.add(a);
+            }
+        }
+        return tmp;
+    }
+
+    public List<Actor> getSick(Set<Actor> as) {
+        List<Actor> tmp = new ArrayList<>();
+        for (Actor a : as) {
+            if (a.getState() == Actor.State.SICK) {
+                tmp.add(a);
+            }
+        }
+        return tmp;
+    }
+
     public void step(Actor a) {
         int dir = rand.nextInt(4);
         if (Math.random() < threshold) {
@@ -115,22 +158,17 @@ public class Board {
         }
     }
 
-    /**
-     * @param state
-     * @param maxX
-     * @param maxY
-     * @return
-     */
-    public Actor gerRandomActor(Actor.State state, int maxX, int maxY) {
+    private Actor gerRandomActor(Actor.State state, int maxX, int maxY, double beta, double gamma) {
         Random r = new Random();
-        return new Actor(state, r.nextInt(maxX), r.nextInt(maxY));
+        return new Actor(state, r.nextInt(maxX), r.nextInt(maxY), beta, gamma);
     }
 
-    /**
-     * @param actor
-     */
     public void addActor(Actor actor) {
         actors.add(actor);
+    }
+
+    public List<Actor> getActors() {
+        return actors;
     }
 
     public boolean isFinished() {
@@ -142,12 +180,6 @@ public class Board {
         return true;
     }
 
-    public Actor actorBirth(){
-        Actor a = gerRandomActor(State.HEALTHY, this.maxRow, this.maxCol);
-        addActor(a);
-        return a;
-    }
-
     public int numberOfSick() {
         int sum = 0;
         for (Actor a : actors) {
@@ -156,66 +188,6 @@ public class Board {
             }
         }
         return sum;
-    }
-
-    public int numberOfExposed() {
-        int sum = 0;
-        for (Actor a : actors) {
-            if (a.getState() == State.EXPOSED) {
-                sum++;
-            }
-        }
-        return sum;
-    }
-
-    /**
-     * @param as
-     * @return
-     */
-    public List<Actor> getExposed(Set<Actor> as){
-        List<Actor> tmp = new ArrayList<>();
-        for (Actor a : as) {
-            if (a.getState() == Actor.State.EXPOSED) {
-                tmp.add(a);
-            }
-        }
-        return tmp;
-    }
-
-    public int getMaxCol() {
-        return maxCol;
-    }
-
-    public int getMaxRow() {
-        return maxRow;
-    }
-
-    /**
-     * @param as
-     * @return
-     */
-    public List<Actor> getHealthy(Set<Actor> as) {
-        List<Actor> tmp = new ArrayList<>();
-        for (Actor a : as) {
-            if (a.getState() == Actor.State.HEALTHY) {
-                tmp.add(a);
-            }
-        }
-        return tmp;
-    }
-
-    /**
-     * @param as
-     * @return
-     */
-    public List<Actor> getSick(Set<Actor> as) {
-        List<Actor> tmp = new ArrayList<>();
-        for (Actor a : as) {
-            if (a.getState() == Actor.State.SICK) {
-                tmp.add(a);
-            }
-        }
-        return tmp;
     }
 
     public int numberOfHealthy() {
@@ -237,5 +209,11 @@ public class Board {
         }
         return sum;
     }
+    public int[] numberTotal(){
+        int pop[] = {numberOfHealthy(),numberOfSick(),numberOfCured()};
+        return pop;
+    }
+
+
 
 }

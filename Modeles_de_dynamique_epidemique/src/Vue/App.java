@@ -179,7 +179,8 @@ public class App extends JFrame{
     }
 
     private void updateChart() {
-        JFreeChart chart = ChartFactory.createXYLineChart("SIR Model", null, null, simulationController.getDataset(), PlotOrientation.VERTICAL, true, true, true);
+//        ConsoleTest.setText( simulationController.getDataset().);
+        JFreeChart chart = ChartFactory.createXYLineChart("Model", null, null, simulationController.getDataset(), PlotOrientation.VERTICAL, true, true, true);
 
         graphPanel.removeAll();
         graphPanel.add(new ChartPanel(chart), BorderLayout.CENTER);

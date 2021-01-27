@@ -12,13 +12,6 @@ public class SIRModel implements Model {
 
     private String[] states = {"Number of susceptible", "Number of infected", "Number of recovered"};
 
-//    public SIRModel(double beta, double gamma, Board board){
-//        this.params.put("beta",beta);
-//        this.params.put("gamma",gamma);
-//        this.board = board;
-//        this.initActors();
-//    }
-
     public SIRModel(){
         this.params.put("beta",80/100.0);
         this.params.put("gamma",60/100.0);
@@ -44,22 +37,41 @@ public class SIRModel implements Model {
         return numberOfPeople();
     }
 
+//    public void infect() {
+//        List<Set<Actor>> sets = board.find();
+//        for (Set<Actor> as : sets) {
+//            List<Actor> healthy = board.getHealthy(as);
+//            List<Actor> sick = board.getSick(as);
+//            for (Actor a : sick) {
+//                if (doInfect(a)) {
+//                    setAll(healthy, Actor.State.SICK);
+//                }
+//
+//                if (doCure(a)) {
+//                    a.setState(Actor.State.IMMUNE);
+//                }
+//            }
+//        }
+//    }
+
     public void infect() {
         List<Set<Actor>> sets = board.find();
         for (Set<Actor> as : sets) {
             List<Actor> healthy = board.getHealthy(as);
             List<Actor> sick = board.getSick(as);
-            for (Actor a : sick) {
-                if (doInfect(a)) {
-                    setAll(healthy, Actor.State.SICK);
+            for (Actor aSick : sick) {
+                for (Actor aHealthy : healthy) {
+                    if (doInfect(aSick)) {
+                        aHealthy.setState(Actor.State.SICK);
+                    }
                 }
-
-                if (doCure(a)) {
-                    a.setState(Actor.State.IMMUNE);
+                if (doCure(aSick)) {
+                    aSick.setState(Actor.State.IMMUNE);
                 }
             }
         }
     }
+
 
     /**
      * @param as

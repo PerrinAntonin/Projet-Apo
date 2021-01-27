@@ -1,9 +1,6 @@
 package Model;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class SEIRBModel implements Model{
 
@@ -43,34 +40,45 @@ public class SEIRBModel implements Model{
         return numberOfPeople();
     };
 
+
     public void infect() {
         List<Set<Actor>> sets = board.find();
         for (Set<Actor> as : sets) {
+            List<Actor> tmpActor = new ArrayList<>(as);
+            for (Actor a : tmpActor) {
+                if (giveBirth(a)) {
+                    Actor newActor = board.actorBirth();
+                    newActor.setParams(params);
+                }
+            }
+
             List<Actor> healthy = board.getHealthy(as);
             List<Actor> sick = board.getSick(as);
-            for (Actor a : sick) {
-                if (doInfect(a)) {
-                    setAll(healthy, Actor.State.SICK);
-                }else{
-                    a.setState(Actor.State.EXPOSED);
-                }
+            List<Actor> exposed = board.getExposed(as);
 
-                if (doCure(a)) {
-                    a.setState(Actor.State.IMMUNE);
+            for (Actor aHealthy : healthy) {
+                if (doExpose(aHealthy)) {
+                    aHealthy.setState(Actor.State.EXPOSED);
+                }
+            }
+            for (Actor aSick : sick) {
+                for (Actor aExposed : exposed) {
+                    if (doInfect(aSick)) {
+                        aExposed.setState(Actor.State.SICK);
+                    }
+                }
+                if (doCure(aSick)) {
+                    aSick.setState(Actor.State.IMMUNE);
                 }
 
             }
         }
     }
 
-    /**
-     * @param as
-     * @param state
-     */
-    public void setAll(List<Actor> as, Actor.State state) {
-        for (Actor a : as) {
-            a.setState(state);
-        }
+
+    public boolean doExpose(Actor a) {
+        double sigma = getActorSigma(a);
+        return Math.random() < sigma;
     }
 
     /**
@@ -89,6 +97,31 @@ public class SEIRBModel implements Model{
     public boolean doCure(Actor a){
         double gamma = getActorGamma(a);
         return Math.random() < gamma;
+    }
+
+    /**
+     * @param a
+     * @return
+     */
+    public boolean giveBirth(Actor a){
+        double birthRate = getActorBirthRate(a);
+        return Math.random() < birthRate;
+    }
+
+    /**
+     * @param a
+     * @return
+     */
+    public double getActorBirthRate(Actor a) {
+        return a.getParams().get("birthRate");
+    }
+
+    /**
+     * @param a
+     * @return
+     */
+    public double getActorSigma(Actor a) {
+        return a.getParams().get("sigma");
     }
 
     /**
