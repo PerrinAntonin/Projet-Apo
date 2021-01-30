@@ -37,23 +37,6 @@ public class SIRModel implements Model {
         return numberOfPeople();
     }
 
-//    public void infect() {
-//        List<Set<Actor>> sets = board.find();
-//        for (Set<Actor> as : sets) {
-//            List<Actor> healthy = board.getHealthy(as);
-//            List<Actor> sick = board.getSick(as);
-//            for (Actor a : sick) {
-//                if (doInfect(a)) {
-//                    setAll(healthy, Actor.State.SICK);
-//                }
-//
-//                if (doCure(a)) {
-//                    a.setState(Actor.State.IMMUNE);
-//                }
-//            }
-//        }
-//    }
-
     public void infect() {
         List<Set<Actor>> sets = board.find();
         for (Set<Actor> as : sets) {
@@ -69,17 +52,6 @@ public class SIRModel implements Model {
                     aSick.setState(Actor.State.IMMUNE);
                 }
             }
-        }
-    }
-
-
-    /**
-     * @param as
-     * @param state
-     */
-    public void setAll(List<Actor> as, Actor.State state) {
-        for (Actor a : as) {
-            a.setState(state);
         }
     }
 

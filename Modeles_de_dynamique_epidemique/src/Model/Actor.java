@@ -10,6 +10,7 @@ public class Actor {
     }
 
     private Map<String, Double> params = new HashMap<>();
+    private Map<String, Double> defaultParams;
 
     private State state;
     private int row;
@@ -25,11 +26,14 @@ public class Actor {
      * @param params
      */
     public void setParams(Map<String, Double> params){
+        if(this.defaultParams.size() == 0){
+            this.defaultParams = params;
+        }
         this.params = params;
     }
 
-
     public Map<String, Double> getParams(){return params; }
+    public Map<String, Double> getDefaultParams(){return defaultParams; }
 
     public State getState() {
         return state;

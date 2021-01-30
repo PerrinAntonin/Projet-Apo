@@ -4,14 +4,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.http.WebSocket;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.UIManager;
 
 import Controller.SimulationController;
 import Model.SEIRBModel;
@@ -22,7 +23,7 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 
-public class App extends JFrame{
+public class App extends JFrame {
     private SimulationController simulationController;
 
     private JPanel panelMain;
@@ -41,9 +42,20 @@ public class App extends JFrame{
     private JSpinner nPopSickS;
     private JSpinner yMaxSizeS;
     private JSpinner xMaxSizeS;
+    private JLabel politiqueL;
+    private JComboBox politiqueCB;
     private Map<String, JSlider> params = new HashMap<>();
 
-    public static void main(String[] args)   {
+    public static void main(String[] args) {
+
+//        try {
+//            // Use the system look and feel for the swing application
+//            String className = UIManager.getSystemLookAndFeelClassName();
+//            UIManager.setLookAndFeel(className);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+
         App view = new App();
     }
 
@@ -65,18 +77,22 @@ public class App extends JFrame{
         graphPanel.revalidate();
 
 
-
         ChangeListener listenerModelParams = new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
 
                 Map<String, Double> modelParams = new HashMap<String, Double>();
 
-                for (String labelName:params.keySet()) {
-                    modelParams.put(labelName,params.get(labelName).getValue()/100.);
+                for (String labelName : params.keySet()) {
+                    if (labelName.equals("birthRate")) {
+                        modelParams.put(labelName, params.get(labelName).getValue() / 1000.);
+                    } else {
+                        modelParams.put(labelName, params.get(labelName).getValue() / 100.);
+                    }
+
                 }
 
-                ConsoleTest.setText("Value changed" + params.get("gamma").getValue() );
+                ConsoleTest.setText("Value changed" + params.get("gamma").getValue());
                 simulationController.changeModelParams(modelParams);
             }
         };
@@ -93,8 +109,8 @@ public class App extends JFrame{
                         params.clear();
 
                         SIRModel sirmodel = new SIRModel();
-                        Map<String, Double> paramsMapSir= sirmodel.getParams();
-                        for (String labelName:paramsMapSir.keySet()) {
+                        Map<String, Double> paramsMapSir = sirmodel.getParams();
+                        for (String labelName : paramsMapSir.keySet()) {
                             addSetting(labelName, listenerModelParams, paramsMapSir.get(labelName));
                         }
 
@@ -109,7 +125,7 @@ public class App extends JFrame{
 
                         SEIRModel seirmodel = new SEIRModel();
                         Map<String, Double> paramsMapSeir = seirmodel.getParams();
-                        for (String labelName:paramsMapSeir.keySet()) {
+                        for (String labelName : paramsMapSeir.keySet()) {
                             addSetting(labelName, listenerModelParams, paramsMapSeir.get(labelName));
                         }
                         simulationController.changeModel(seirmodel);
@@ -123,8 +139,8 @@ public class App extends JFrame{
 
                         SEIRBModel seirbmodel = new SEIRBModel();
                         Map<String, Double> paramsMapSeirb = seirbmodel.getParams();
-                        for (String labelName:paramsMapSeirb.keySet()) {
-                            addSetting(labelName,listenerModelParams, paramsMapSeirb.get(labelName));
+                        for (String labelName : paramsMapSeirb.keySet()) {
+                            addSetting(labelName, listenerModelParams, paramsMapSeirb.get(labelName));
                         }
                         simulationController.changeModel(seirbmodel);
                         graphPanel.revalidate();
@@ -149,10 +165,10 @@ public class App extends JFrame{
                 graphPanel.revalidate();
 
                 int xMax = (Integer) xMaxSizeS.getValue();
-                int yMax = (Integer)yMaxSizeS.getValue();
-                int nPop = (Integer)nPopS.getValue();
-                int nPopSick = (Integer)nPopSickS.getValue();
-                simulationController.reset(xMax,yMax,nPop,nPopSick);
+                int yMax = (Integer) yMaxSizeS.getValue();
+                int nPop = (Integer) nPopS.getValue();
+                int nPopSick = (Integer) nPopSickS.getValue();
+                simulationController.reset(xMax, yMax, nPop, nPopSick);
             }
         });
 
@@ -163,23 +179,46 @@ public class App extends JFrame{
                 updateChart();
             }
         });
+
+        politiqueCB.addItem("Aucune");
+        politiqueCB.addItem("Confinement");
+        politiqueCB.addItem("Port du masque");
+        politiqueCB.addItem("Quarantaine");
+        politiqueCB.addItem("Vaccination");
+
+        politiqueCB.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String petName = (String)politiqueCB.getSelectedItem();
+                switch (Objects.requireNonNull(petName)) {
+                    case "Confinement" -> simulationController.setPolitic(SimulationController.Politic.CONFINEMENT);
+                    case "Port du masque" -> simulationController.setPolitic(SimulationController.Politic.PORTDUMASQUE);
+                    case "Quarantaine" -> simulationController.setPolitic(SimulationController.Politic.QUARANTAINE);
+                    case "Vaccination" -> simulationController.setPolitic(SimulationController.Politic.VACCINATION);
+                    default -> simulationController.setPolitic(SimulationController.Politic.AUCUNE);
+                }
+            }
+        });
     }
 
-    public void addSetting(String labelName, ChangeListener listener, double value){
+    public void addSetting(String labelName, ChangeListener listener, double value) {
         JLabel lab = new JLabel(labelName);
         lab.setAlignmentX(Component.RIGHT_ALIGNMENT);
-        newSettingLabelP.setLayout(new BoxLayout(newSettingLabelP,BoxLayout.Y_AXIS));
-        newSettingLabelP.add(lab,BorderLayout.EAST);
+        newSettingLabelP.setLayout(new BoxLayout(newSettingLabelP, BoxLayout.Y_AXIS));
+        newSettingLabelP.add(lab, BorderLayout.EAST);
         JSlider slider = new JSlider();
-        slider.setValue((int)(value*100));
+        if (labelName == "brithRate") {
+            slider.setValue((int) (value * 1000));
+        } else {
+            slider.setValue((int) (value * 100));
+        }
         slider.addChangeListener(listener);
-        params.put(labelName,slider);
-        newSettingValueP.setLayout(new BoxLayout(newSettingValueP,BoxLayout.Y_AXIS));
+        params.put(labelName, slider);
+        newSettingValueP.setLayout(new BoxLayout(newSettingValueP, BoxLayout.Y_AXIS));
         newSettingValueP.add(slider);
     }
 
     private void updateChart() {
-//        ConsoleTest.setText( simulationController.getDataset().);
         JFreeChart chart = ChartFactory.createXYLineChart("Model", null, null, simulationController.getDataset(), PlotOrientation.VERTICAL, true, true, true);
 
         graphPanel.removeAll();
@@ -187,7 +226,7 @@ public class App extends JFrame{
         graphPanel.revalidate();
     }
 
-    public void setParamsFrame(int[] mapParams){
+    public void setParamsFrame(int[] mapParams) {
         nPopSickS.setValue(mapParams[3]);
         nPopS.setValue(mapParams[2]);
         xMaxSizeS.setValue(mapParams[0]);
@@ -196,8 +235,8 @@ public class App extends JFrame{
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
-        String params[] = { "SIR", "SEIR", "SIR with birth" };
+        String params[] = {"SIR", "SEIR", "SIR with birth"};
 
-        this.SIRModelCB= new JComboBox(params);
+        this.SIRModelCB = new JComboBox(params);
     }
 }

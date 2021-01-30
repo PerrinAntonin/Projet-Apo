@@ -12,7 +12,7 @@ public class SEIRBModel implements Model{
         this.params.put("beta",80/100.0);
         this.params.put("gamma",60/100.0);
         this.params.put("sigma",70/100.0);
-        this.params.put("birthRate", 2/100.0);
+        this.params.put("birthRate", 2/1000.0);
     }
 
     public String[] getStates() { return states; }

@@ -190,6 +190,25 @@ public class Board {
         return maxRow;
     }
 
+    public void setMask() {
+        for (Actor a : actors){
+            if(Math.random() < .2) {
+                Map<String, Double> defaultParams = a.getDefaultParams();
+                Double beta = defaultParams.get("beta");
+                Map<String, Double> params = a.getParams();
+                params.put("beta",beta*.8);
+                a.setParams(params);
+            }
+        }
+    }
+
+    public void resetParams(){
+        for (Actor a : actors){
+                Map<String, Double> params = a.getDefaultParams();
+                a.setParams(params);
+        }
+    }
+
     /**
      * @param as
      * @return

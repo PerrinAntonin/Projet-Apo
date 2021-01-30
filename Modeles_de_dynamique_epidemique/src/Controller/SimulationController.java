@@ -12,6 +12,9 @@ import java.util.Map;
 
 
 public class SimulationController {
+    public enum Politic {
+        AUCUNE, CONFINEMENT, PORTDUMASQUE, QUARANTAINE, VACCINATION
+    }
     private Board board;
     private Model model;
     private List<XYSeries> dataset = new ArrayList<>();
@@ -21,6 +24,30 @@ public class SimulationController {
     private int yMax = 20;
     private int nPop = 1000;
     private int nPopSick = 10;
+    private Politic politic = Politic.AUCUNE ;
+
+    public Politic getPolitic(){
+        return politic;
+    }
+    public void setPolitic(Politic politic){
+       this.politic = politic;
+       switch (politic){
+           case CONFINEMENT:
+
+               break;
+           case PORTDUMASQUE:
+                    board.setMask();
+               break;
+           case QUARANTAINE:
+
+               break;
+           case VACCINATION:
+
+               break;
+
+       }
+    }
+
 
 
     public SimulationController() {
