@@ -33,18 +33,22 @@ public class SimulationController {
        this.politic = politic;
        switch (politic){
            case CONFINEMENT:
-
+                board.setConfinement(0.3);
                break;
            case PORTDUMASQUE:
-                    board.setMask();
+               board.setMask();
                break;
            case QUARANTAINE:
-
+                board.setQuarantaine();
                break;
            case VACCINATION:
-
+//               TODO: Vaccination
+               board.setVacination(.05);
                break;
-
+           default:
+               // Reset Model params
+               board.resetParams();
+               board.setConfinement(.8);
        }
     }
 
@@ -85,6 +89,7 @@ public class SimulationController {
         for (String StateName : model.getStates()) {
             this.dataset.add(new XYSeries(StateName));
         }
+
         index = 0;
         int[] initNBPeople = model.numberOfPeople();
         for (int j = 0; j < initNBPeople.length; j++) {

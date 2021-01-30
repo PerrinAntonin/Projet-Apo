@@ -157,6 +157,7 @@ public class App extends JFrame {
         resetModelButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                politiqueCB.setSelectedItem("Aucune");
                 // Regenerate Chart
                 JFreeChart chart = ChartFactory.createXYLineChart(null, null, null, null, PlotOrientation.VERTICAL, true, true, true);
                 ChartPanel newchartpanel = new ChartPanel(chart);

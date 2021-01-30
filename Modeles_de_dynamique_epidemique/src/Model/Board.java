@@ -2,6 +2,7 @@ package Model;
 
 import Model.Actor;
 import Model.Actor.State;
+
 import java.util.*;
 
 public class Board {
@@ -9,16 +10,16 @@ public class Board {
     private int maxCol;
     private int minRow = 0;
     private int minCol = 0;
-
-
+    private Double movable = 0.8;
 
     private Random rand = new Random();
     public List<Actor> actors = new ArrayList<>();
     private List<Set<Actor>> sets = new ArrayList<>();
 
-    public double threshold = 0.3;
 
-    public Board(int maxRow, int maxCol, int nPop, int nPopSick) { init(maxRow, maxCol, nPop, nPopSick); }
+    public Board(int maxRow, int maxCol, int nPop, int nPopSick) {
+        init(maxRow, maxCol, nPop, nPopSick);
+    }
 
     /**
      * @param maxRow
@@ -26,26 +27,26 @@ public class Board {
      * @param nActor
      * @param nPopSick
      */
-    public void init(int maxRow, int maxCol, int nActor, int nPopSick){
+    public void init(int maxRow, int maxCol, int nActor, int nPopSick) {
         this.maxRow = maxRow;
         this.maxCol = maxCol;
         this.clearActors();
         for (int i = 0; i < nPopSick; i++) {
             addActor(gerRandomActor(Actor.State.SICK, maxRow, maxCol));
         }
-        if(nActor>nPopSick){
-            for (int i = 0; i < nActor-nPopSick; i++) {
+        if (nActor > nPopSick) {
+            for (int i = 0; i < nActor - nPopSick; i++) {
                 addActor(gerRandomActor(Actor.State.HEALTHY, maxRow, maxCol));
             }
         }
     }
 
-    public void clearActors(){
+    public void clearActors() {
         actors = new ArrayList<>();
         sets = new ArrayList<>();
     }
 
-    public void modifyActors(Map<String, Double> params){
+    public void modifyActors(Map<String, Double> params) {
         for (Actor a : actors) {
             a.setParams(params);
         }
@@ -73,13 +74,16 @@ public class Board {
         }
     }
 
+    public void setConfinement(Double value) {
+        this.movable = value;
+    }
 
     /**
      * @param a
      */
     public void step(Actor a) {
         int dir = rand.nextInt(4);
-        if (Math.random() < threshold) {
+        if (Math.random() < this.movable) {
             return;
         } else {
             switch (dir) {
@@ -142,7 +146,7 @@ public class Board {
         return true;
     }
 
-    public Actor actorBirth(){
+    public Actor actorBirth() {
         Actor a = gerRandomActor(State.HEALTHY, this.maxRow, this.maxCol);
         addActor(a);
         return a;
@@ -172,7 +176,7 @@ public class Board {
      * @param as
      * @return
      */
-    public List<Actor> getExposed(Set<Actor> as){
+    public List<Actor> getExposed(Set<Actor> as) {
         List<Actor> tmp = new ArrayList<>();
         for (Actor a : as) {
             if (a.getState() == Actor.State.EXPOSED) {
@@ -191,21 +195,41 @@ public class Board {
     }
 
     public void setMask() {
-        for (Actor a : actors){
-            if(Math.random() < .2) {
+        for (Actor a : actors) {
+            if (Math.random() < .6) {
                 Map<String, Double> defaultParams = a.getDefaultParams();
                 Double beta = defaultParams.get("beta");
                 Map<String, Double> params = a.getParams();
-                params.put("beta",beta*.8);
+                params.put("beta", beta * .6);
                 a.setParams(params);
             }
         }
     }
 
-    public void resetParams(){
-        for (Actor a : actors){
-                Map<String, Double> params = a.getDefaultParams();
+    public void setQuarantaine() {
+        for (Actor a : actors) {
+            if (a.getState() == State.SICK) {
+                Map<String, Double> params = a.getParams();
+                params.put("beta", 0.);
                 a.setParams(params);
+            }
+        }
+    }
+
+    public void setVacination(Double vacination) {
+        for (Actor a : actors) {
+            if (a.getState() == State.HEALTHY) {
+                if (Math.random() < vacination) {
+                    a.setState(State.IMMUNE);
+                }
+            }
+        }
+    }
+
+    public void resetParams() {
+        for (Actor a : actors) {
+            Map<String, Double> params = a.getDefaultParams();
+            a.setParams(params);
         }
     }
 

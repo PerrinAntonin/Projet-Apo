@@ -26,10 +26,17 @@ public class Actor {
      * @param params
      */
     public void setParams(Map<String, Double> params){
-        if(this.defaultParams.size() == 0){
-            this.defaultParams = params;
+        if(this.defaultParams == null){
+            this.defaultParams= new HashMap<>();
+            for (Map.Entry<String, Double> entry : params.entrySet()) {
+                this.defaultParams.put(entry.getKey(),entry.getValue());
+            }
         }
-        this.params = params;
+
+        for (Map.Entry<String, Double> entry : params.entrySet()) {
+            this.params.put(entry.getKey(),entry.getValue());
+        }
+
     }
 
     public Map<String, Double> getParams(){return params; }
