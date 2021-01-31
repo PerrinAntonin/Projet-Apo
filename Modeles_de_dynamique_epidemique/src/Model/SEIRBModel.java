@@ -2,51 +2,62 @@ package Model;
 
 import java.util.*;
 
-public class SEIRBModel implements Model{
+public class SEIRBModel implements Model {
 
     Map<String, Double> params = new HashMap<String, Double>();
     private Board board;
     private String[] states = {"Number of susceptible", "Number of exposed", "Number of infected", "Number of recovered"};
 
-    public SEIRBModel(){
-        this.params.put("beta",80/100.0);
-        this.params.put("gamma",60/100.0);
-        this.params.put("sigma",70/100.0);
-        this.params.put("birthRate", 2/1000.0);
+    public SEIRBModel() {
+        this.params.put("beta", 80 / 100.0);
+        this.params.put("gamma", 60 / 100.0);
+        this.params.put("sigma", 70 / 100.0);
+        this.params.put("birthRate", 5 / 1000.0);
+        this.params.put("deathRate", 5 / 1000.0);
     }
 
-    public String[] getStates() { return states; }
+    public String[] getStates() {
+        return states;
+    }
 
 
     /**
      * @param board
      */
-    public void setBoard(Board board){ this.board = board; }
+    public void setBoard(Board board) {
+        this.board = board;
+    }
 
-    public void initActors(){ board.modifyActors(this.params); }
+    public void initActors() {
+        board.modifyActors(this.params);
+    }
 
     /**
      * @param params
      */
-    public void setModelParams(Map<String, Double> params ){ this.params=params; }
-
-    public int[] numberOfPeople(){
-        return new int[] { board.numberOfHealthy(), board.numberOfExposed(), board.numberOfSick(), board.numberOfCured()};
+    public void setModelParams(Map<String, Double> params) {
+        this.params = params;
     }
 
-    public int[] stepInfection(){
+    public int[] numberOfPeople() {
+        return new int[]{board.numberOfHealthy(), board.numberOfExposed(), board.numberOfSick(), board.numberOfCured()};
+    }
+
+    public int[] stepInfection() {
         board.move();
         this.infect();
         return numberOfPeople();
-    };
-
+    }
 
     public void infect() {
         List<Set<Actor>> sets = board.find();
         for (Set<Actor> as : sets) {
             List<Actor> tmpActor = new ArrayList<>(as);
             for (Actor a : tmpActor) {
-                if (giveBirth(a)) {
+                if (giveDeath(a) && a.getState() != Actor.State.DEAD) {
+                    a.setState(Actor.State.DEAD);
+                }
+                if (giveBirth(a) && a.getState() != Actor.State.DEAD) {
                     Actor newActor = board.actorBirth();
                     newActor.setParams(params);
                 }
@@ -85,7 +96,7 @@ public class SEIRBModel implements Model{
      * @param a
      * @return
      */
-    public boolean doInfect(Actor a){
+    public boolean doInfect(Actor a) {
         double beta = getActorBeta(a);
         return Math.random() < beta;
     }
@@ -94,7 +105,7 @@ public class SEIRBModel implements Model{
      * @param a
      * @return
      */
-    public boolean doCure(Actor a){
+    public boolean doCure(Actor a) {
         double gamma = getActorGamma(a);
         return Math.random() < gamma;
     }
@@ -103,9 +114,14 @@ public class SEIRBModel implements Model{
      * @param a
      * @return
      */
-    public boolean giveBirth(Actor a){
+    public boolean giveBirth(Actor a) {
         double birthRate = getActorBirthRate(a);
         return Math.random() < birthRate;
+    }
+
+    public boolean giveDeath(Actor a) {
+        double deadRate = getActorDeadRate(a);
+        return Math.random() < deadRate;
     }
 
     /**
@@ -114,6 +130,10 @@ public class SEIRBModel implements Model{
      */
     public double getActorBirthRate(Actor a) {
         return a.getParams().get("birthRate");
+    }
+
+    public double getActorDeadRate(Actor a) {
+        return a.getParams().get("deathRate");
     }
 
     /**
@@ -128,18 +148,27 @@ public class SEIRBModel implements Model{
      * @param a
      * @return
      */
-    public double getActorGamma(Actor a){ return a.getParams().get("gamma"); }
+    public double getActorGamma(Actor a) {
+        return a.getParams().get("gamma");
+    }
 
     /**
      * @param a
      * @return
      */
-    public double getActorBeta(Actor a){ return a.getParams().get("beta"); }
+    public double getActorBeta(Actor a) {
+        return a.getParams().get("beta");
+    }
+
 
     /**
      * @param board
      */
-    public void addBoard(Board board){ this.board = board; }
+    public void addBoard(Board board) {
+        this.board = board;
+    }
 
-    public Map<String, Double> getParams(){return this.params;}
+    public Map<String, Double> getParams() {
+        return this.params;
+    }
 }

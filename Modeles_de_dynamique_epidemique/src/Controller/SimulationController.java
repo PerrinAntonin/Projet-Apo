@@ -15,44 +15,46 @@ public class SimulationController {
     public enum Politic {
         AUCUNE, CONFINEMENT, PORTDUMASQUE, QUARANTAINE, VACCINATION
     }
+
     private Board board;
     private Model model;
     private List<XYSeries> dataset = new ArrayList<>();
     private int index = 0;
 
-    private int xMax = 20;
-    private int yMax = 20;
-    private int nPop = 1000;
-    private int nPopSick = 10;
-    private Politic politic = Politic.AUCUNE ;
+    private int xMax = 25;
+    private int yMax = 25;
+    private int nPop = 10000;
+    private int nPopSick = 100;
+    private Politic politic = Politic.AUCUNE;
 
-    public Politic getPolitic(){
-        return politic;
-    }
-    public void setPolitic(Politic politic){
-       this.politic = politic;
-       switch (politic){
-           case CONFINEMENT:
+    public void setPolitic(Politic politic) {
+        this.politic = politic;
+        switch (politic) {
+            case CONFINEMENT:
+                resetPolitic();
                 board.setConfinement(0.3);
-               break;
-           case PORTDUMASQUE:
-               board.setMask();
-               break;
-           case QUARANTAINE:
+                break;
+            case PORTDUMASQUE:
+                resetPolitic();
+                board.setMask();
+                break;
+            case QUARANTAINE:
+                resetPolitic();
                 board.setQuarantaine();
-               break;
-           case VACCINATION:
-//               TODO: Vaccination
-               board.setVacination(.05);
-               break;
-           default:
-               // Reset Model params
-               board.resetParams();
-               board.setConfinement(.8);
-       }
+                break;
+            case VACCINATION:
+                resetPolitic();
+                board.setVacination(.05);
+                break;
+            default:
+                // Reset Model params
+                resetPolitic();
+        }
     }
-
-
+    private void resetPolitic(){
+        board.resetParams();
+        board.setConfinement(.8);
+    }
 
     public SimulationController() {
         this.board = new Board(xMax, yMax, nPop, nPopSick);
@@ -101,7 +103,6 @@ public class SimulationController {
      * @param nb
      */
     public void iterate(int nb) {
-
         for (int i = 0; i < nb; i++) {
             int[] result = model.stepInfection();
             for (int j = 0; j < result.length; j++) {
@@ -109,7 +110,6 @@ public class SimulationController {
             }
             index++;
         }
-
     }
 
     /**

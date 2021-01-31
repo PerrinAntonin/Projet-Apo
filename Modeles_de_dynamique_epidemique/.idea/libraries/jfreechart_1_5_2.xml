@@ -1,6 +1,5 @@
 <component name="libraryTable">
-  <library name="org.jfree:jfreechart:1.5.2" type="repository">
-    <properties maven-id="org.jfree:jfreechart:1.5.2" />
+  <library name="jfreechart-1.5.2">
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/lib/jfreechart-1.5.2.jar!/" />
     </CLASSES>

@@ -6,7 +6,7 @@ import java.util.Map;
 
 public class Actor {
     public enum State {
-        SICK, HEALTHY, IMMUNE, EXPOSED
+        SICK, HEALTHY, IMMUNE, EXPOSED, DEAD
     }
 
     private Map<String, Double> params = new HashMap<>();

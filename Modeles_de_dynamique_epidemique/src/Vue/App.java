@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -14,6 +15,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.UIManager;
 
+import Controller.CSVController;
 import Controller.SimulationController;
 import Model.SEIRBModel;
 import Model.SEIRModel;
@@ -44,6 +46,7 @@ public class App extends JFrame {
     private JSpinner xMaxSizeS;
     private JLabel politiqueL;
     private JComboBox politiqueCB;
+    private JButton downloadBtn;
     private Map<String, JSlider> params = new HashMap<>();
 
     public static void main(String[] args) {
@@ -84,7 +87,7 @@ public class App extends JFrame {
                 Map<String, Double> modelParams = new HashMap<String, Double>();
 
                 for (String labelName : params.keySet()) {
-                    if (labelName.equals("birthRate")) {
+                    if (labelName.equals("birthRate") || labelName.equals("deathRate")) {
                         modelParams.put(labelName, params.get(labelName).getValue() / 1000.);
                     } else {
                         modelParams.put(labelName, params.get(labelName).getValue() / 100.);
@@ -92,7 +95,6 @@ public class App extends JFrame {
 
                 }
 
-                ConsoleTest.setText("Value changed" + params.get("gamma").getValue());
                 simulationController.changeModelParams(modelParams);
             }
         };
@@ -136,7 +138,6 @@ public class App extends JFrame {
                         newSettingLabelP.removeAll();
                         newSettingValueP.removeAll();
                         params.clear();
-
                         SEIRBModel seirbmodel = new SEIRBModel();
                         Map<String, Double> paramsMapSeirb = seirbmodel.getParams();
                         for (String labelName : paramsMapSeirb.keySet()) {
@@ -190,7 +191,7 @@ public class App extends JFrame {
         politiqueCB.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String petName = (String)politiqueCB.getSelectedItem();
+                String petName = (String) politiqueCB.getSelectedItem();
                 switch (Objects.requireNonNull(petName)) {
                     case "Confinement" -> simulationController.setPolitic(SimulationController.Politic.CONFINEMENT);
                     case "Port du masque" -> simulationController.setPolitic(SimulationController.Politic.PORTDUMASQUE);
@@ -200,6 +201,19 @@ public class App extends JFrame {
                 }
             }
         });
+
+        downloadBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    CSVController.donwloadData("test.csv",simulationController.getDataset());
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
+
+        });
+
     }
 
     public void addSetting(String labelName, ChangeListener listener, double value) {
@@ -208,10 +222,15 @@ public class App extends JFrame {
         newSettingLabelP.setLayout(new BoxLayout(newSettingLabelP, BoxLayout.Y_AXIS));
         newSettingLabelP.add(lab, BorderLayout.EAST);
         JSlider slider = new JSlider();
-        if (labelName == "brithRate") {
+        if (labelName.equals("birthRate") || labelName.equals("deathRate")) {
             slider.setValue((int) (value * 1000));
+            int test = (int) (value * 1000);
         } else {
             slider.setValue((int) (value * 100));
+        }
+        if (labelName.equals("birthRate")) {
+            int test = (int) (value * 1000);
+            ConsoleTest.setText(String.valueOf(test));
         }
         slider.addChangeListener(listener);
         params.put(labelName, slider);

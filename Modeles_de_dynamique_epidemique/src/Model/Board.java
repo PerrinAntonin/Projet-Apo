@@ -10,7 +10,9 @@ public class Board {
     private int maxCol;
     private int minRow = 0;
     private int minCol = 0;
+
     private Double movable = 0.8;
+    private Double vacination = 0.;
 
     private Random rand = new Random();
     public List<Actor> actors = new ArrayList<>();
@@ -67,7 +69,6 @@ public class Board {
         return sets;
     }
 
-
     public void move() {
         for (Actor a : actors) {
             step(a);
@@ -82,10 +83,20 @@ public class Board {
      * @param a
      */
     public void step(Actor a) {
-        int dir = rand.nextInt(4);
+        // vacine une certaine partie de la population
+        if (this.vacination > 0.) {
+            if (a.getState() != State.IMMUNE) {
+                if (Math.random() < this.vacination) {
+                    a.setState(State.IMMUNE);
+                }
+            }
+        }
+
+        // limite le nombre de personnes qui vont se deplacer
         if (Math.random() < this.movable) {
             return;
         } else {
+            int dir = rand.nextInt(4);
             switch (dir) {
                 case 0: // move down
                     if (a.getRow() < maxRow && a.getRow() >= minRow) {
@@ -217,13 +228,7 @@ public class Board {
     }
 
     public void setVacination(Double vacination) {
-        for (Actor a : actors) {
-            if (a.getState() == State.HEALTHY) {
-                if (Math.random() < vacination) {
-                    a.setState(State.IMMUNE);
-                }
-            }
-        }
+        this.vacination = vacination;
     }
 
     public void resetParams() {
