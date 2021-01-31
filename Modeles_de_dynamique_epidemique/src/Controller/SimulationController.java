@@ -106,6 +106,7 @@ public class SimulationController {
         for (int i = 0; i < nb; i++) {
             int[] result = model.stepInfection();
             for (int j = 0; j < result.length; j++) {
+                this.dataset.get(j);
                 this.dataset.get(j).add(index + 1, result[j]);
             }
             index++;

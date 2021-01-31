@@ -1,42 +1,19 @@
 package Model;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
-public class SEIRBModel implements Model {
-
-    Map<String, Double> params = new HashMap<String, Double>();
-    private Board board;
-    private String[] states = {"Number of susceptible", "Number of exposed", "Number of infected", "Number of recovered"};
+public class SEIRBModel extends BasicModel implements Model {
 
     public SEIRBModel() {
+        this.states = new String[]{"Number of susceptible", "Number of exposed", "Number of infected", "Number of recovered"};
+
         this.params.put("beta", 80 / 100.0);
         this.params.put("gamma", 60 / 100.0);
         this.params.put("sigma", 70 / 100.0);
         this.params.put("birthRate", 5 / 1000.0);
         this.params.put("deathRate", 5 / 1000.0);
-    }
-
-    public String[] getStates() {
-        return states;
-    }
-
-
-    /**
-     * @param board
-     */
-    public void setBoard(Board board) {
-        this.board = board;
-    }
-
-    public void initActors() {
-        board.modifyActors(this.params);
-    }
-
-    /**
-     * @param params
-     */
-    public void setModelParams(Map<String, Double> params) {
-        this.params = params;
     }
 
     public int[] numberOfPeople() {
@@ -92,28 +69,6 @@ public class SEIRBModel implements Model {
         return Math.random() < sigma;
     }
 
-    /**
-     * @param a
-     * @return
-     */
-    public boolean doInfect(Actor a) {
-        double beta = getActorBeta(a);
-        return Math.random() < beta;
-    }
-
-    /**
-     * @param a
-     * @return
-     */
-    public boolean doCure(Actor a) {
-        double gamma = getActorGamma(a);
-        return Math.random() < gamma;
-    }
-
-    /**
-     * @param a
-     * @return
-     */
     public boolean giveBirth(Actor a) {
         double birthRate = getActorBirthRate(a);
         return Math.random() < birthRate;
@@ -124,10 +79,6 @@ public class SEIRBModel implements Model {
         return Math.random() < deadRate;
     }
 
-    /**
-     * @param a
-     * @return
-     */
     public double getActorBirthRate(Actor a) {
         return a.getParams().get("birthRate");
     }
@@ -136,39 +87,8 @@ public class SEIRBModel implements Model {
         return a.getParams().get("deathRate");
     }
 
-    /**
-     * @param a
-     * @return
-     */
     public double getActorSigma(Actor a) {
         return a.getParams().get("sigma");
     }
 
-    /**
-     * @param a
-     * @return
-     */
-    public double getActorGamma(Actor a) {
-        return a.getParams().get("gamma");
-    }
-
-    /**
-     * @param a
-     * @return
-     */
-    public double getActorBeta(Actor a) {
-        return a.getParams().get("beta");
-    }
-
-
-    /**
-     * @param board
-     */
-    public void addBoard(Board board) {
-        this.board = board;
-    }
-
-    public Map<String, Double> getParams() {
-        return this.params;
-    }
 }

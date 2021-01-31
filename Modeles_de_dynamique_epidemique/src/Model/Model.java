@@ -3,11 +3,13 @@ package Model;
 import java.util.Map;
 
 public interface Model {
+
+    int[] numberOfPeople();
     int[] stepInfection();
-    Map<String, Double> getParams();
+    void infect();
+    String[] getStates();
+    void setBoard(Board board);
     void initActors();
     void setModelParams(Map<String, Double> params);
-    void setBoard(Board board);
-    String[] getStates();
-    int[] numberOfPeople();
+    Map<String, Double> getParams();
 }

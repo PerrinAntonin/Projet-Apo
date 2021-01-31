@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Modeles_de_dynamique_epidemique:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Modeles_de_dynamique_epidemique_jar</output-path>
+    <root id="archive" name="Modeles_de_dynamique_epidemique.jar">
+      <element id="module-output" name="Modeles_de_dynamique_epidemique" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/opencsv-5.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/jfreechart-1.5.2.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
